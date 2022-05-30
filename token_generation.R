@@ -17,7 +17,6 @@ client_id    <- "238GCK"
 client_secret <- "f719c27b39cfdb748ec01b2597c1d899"
 callback <- "http://localhost:1410/"
 token <- generate_token(client_id, client_secret)
-date <- Sys.Date() -1
 ####################################################
 ####################################################
 ####################################################
@@ -69,7 +68,7 @@ files_update_daily <- do.call(rbind,
 write.csv(files_update_daily, here("concatonated_data", "dates_concatonated.csv"), row.names = FALSE)
 
 }
-add_dates(-1)
+add_dates(0)
 ####################################################
 ####################################################
 ####################################################
@@ -79,7 +78,6 @@ add_dates(-1)
 
 
 ### Concatenated file of all dates
-setwd("C:/Users/User/Documents/R/Fitbit data/concatonated_data/")
 ready_data <- here("concatonated_data","dates_concatonated.csv") %>%
      read_csv() %>%
      as_tibble() %>%
@@ -252,7 +250,6 @@ steps_plot <- impute_steps %>%
 rHR_steps_plots <- plot_grid(rHR_plot, steps_plot, nrow = 2, labels = "") %>%
      plot_grid()
 save_plot(plot = rHR_steps_plots, here("plots", "rHR_steps_plots.tiff"), dpi = 300, base_width = 16, base_height = 12)
-save_plot("C:/Users/User/Documents/R/Fitbit data/concatonated_data/rHR_steps_plots.tiff", plot = rHR_steps_plots, dpi = 300, base_width = 16, base_height = 12)
 ####################################################
 ####################################################
                       
