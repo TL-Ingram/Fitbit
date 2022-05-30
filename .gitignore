@@ -4,4 +4,4 @@
 .Ruserdata
 .open_log
 .token_generation.log
-.plots
+doc/**/*.tiff
