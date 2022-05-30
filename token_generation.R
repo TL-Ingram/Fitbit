@@ -86,6 +86,17 @@ ready_data <- here("concatonated_data","dates_concatonated.csv") %>%
 
 ### Sleep data analysis
 ### Time asleep vs duration
+
+p_theme <- theme_ipsum(axis_title_just = "cc",
+                       axis_title_face = "bold", 
+                       axis_text_size = 10, 
+                       axis_title_size = 14) +
+     theme(panel.grid.minor = element_blank(),
+           panel.grid.major = element_blank(),
+           axis.line.x = element_line("grey50"),
+           axis.ticks = element_line(colour = "grey50", size = 0.2),
+           axis.ticks.x = element_line(colour = "grey50", size = 0.2)) 
+
 sleep_1 <- ready_data %>% 
      filter(!(h_o_s >= 6 & h_o_s <= 19)) %>%
      filter(!(Sleep_hours < 4)) %>%
@@ -101,10 +112,7 @@ sleep_1 <- ready_data %>%
                  axis_title_face = "bold", 
                  axis_text_size = 10, 
                  axis_title_size = 14) +
-     theme(legend.position="right",
-           axis.text.x = element_text(angle = 25, 
-                                      vjust = 1.0, hjust = 1.0),
-           panel.grid.minor = element_blank(),
+     theme(panel.grid.minor = element_blank(),
            panel.grid.major = element_blank(),
            axis.line.x = element_line("grey50"),
            axis.ticks = element_line(colour = "grey50", size = 0.2),
