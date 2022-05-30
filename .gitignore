@@ -4,5 +4,8 @@
 .Ruserdata
 .open_log
 .token_generation.log
-doc/**/*.tiff
+*.jpg
+*.jpeg
+*.png
+*.gif
 *.tiff
