@@ -5,3 +5,4 @@
 .open_log
 .token_generation.log
 doc/**/*.tiff
+*.tiff
