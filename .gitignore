@@ -2,3 +2,5 @@
 .Rhistory
 .RData
 .Ruserdata
+.open_log
+.token_generation.log
