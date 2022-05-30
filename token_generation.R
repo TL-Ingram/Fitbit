@@ -11,14 +11,13 @@ library(padr)
 library(mlr3)
 library(mlr)
 library(zoo)
+library(here)
 ### API loading ###
-setwd("C:/Users/User/Documents/R/Fitbit data")
 client_id    <- "238GCK"
 client_secret <- "f719c27b39cfdb748ec01b2597c1d899"
 callback <- "http://localhost:1410/"
 token <- generate_token(client_id, client_secret)
 date <- Sys.Date() -1
-
 ####################################################
 ####################################################
 ####################################################
@@ -63,18 +62,14 @@ x_clean <- x %>%
 
 
 ### Outputting file to appropriate folder, then concatenating current day with historical data
-path_out <- "C:/Users/User/Documents/R/Fitbit data/archive_daily_output/"
-write.csv(x_clean, paste(path_out, date,"_data.csv", sep=""), row.names = FALSE)
-
+write.csv(x_clean, here("archive_daily_output", paste(date,"_data.csv", sep="")), row.names = FALSE)
 files_update_daily <- do.call(rbind, 
-                              lapply(list.files(path = path_out, pattern = "*data.csv", full.names = TRUE), 
-                                     read.table, header = TRUE, sep=","))
-path_out_two <- "C:/Users/User/Documents/R/Fitbit data/concatonated_data/"
-write.csv(files_update_daily, paste(path_out_two, "dates_concatonated.csv", sep=""), row.names = FALSE)
+                              lapply(list.files(here("archive_daily_output"), full.names = TRUE), 
+                                     read.csv, header = TRUE, sep=","))
+write.csv(files_update_daily, here("concatonated_data", "dates_concatonated.csv"), row.names = FALSE)
 
 }
 add_dates(-1)
-
 ####################################################
 ####################################################
 ####################################################
@@ -85,7 +80,7 @@ add_dates(-1)
 
 ### Concatenated file of all dates
 setwd("C:/Users/User/Documents/R/Fitbit data/concatonated_data/")
-ready_data <- list.files(pattern = "dates_concatonated") %>%
+ready_data <- here("concatonated_data","dates_concatonated.csv") %>%
      read_csv() %>%
      as_tibble() %>%
      mutate(Date = ymd(Date))
@@ -170,7 +165,9 @@ sleep_2 <- ready_data %>%
 ### Faceting the two sleep graphs together
 sleep_plots <- plot_grid(sleep_1, sleep_2, nrow = 2, labels = "") %>%
      plot_grid()
-save_plot("C:/Users/User/Documents/R/Fitbit data/concatonated_data/sleep_plots.tiff", plot = sleep_plots, dpi = 300, base_width = 16, base_height = 12)
+save_plot(plot = sleep_plots, here("plots", "sleep_plots.tiff"), dpi = 300, base_width = 16, base_height = 12)
+
+
 ####################################################
 ####################################################
 
@@ -254,6 +251,7 @@ steps_plot <- impute_steps %>%
 ### Faceting the rHR and steps graphs together
 rHR_steps_plots <- plot_grid(rHR_plot, steps_plot, nrow = 2, labels = "") %>%
      plot_grid()
+save_plot(plot = rHR_steps_plots, here("plots", "rHR_steps_plots.tiff"), dpi = 300, base_width = 16, base_height = 12)
 save_plot("C:/Users/User/Documents/R/Fitbit data/concatonated_data/rHR_steps_plots.tiff", plot = rHR_steps_plots, dpi = 300, base_width = 16, base_height = 12)
 ####################################################
 ####################################################
