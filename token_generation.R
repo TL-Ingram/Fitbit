@@ -1,4 +1,5 @@
 # Pkg load ---------------------------------------------------------------------
+suppressPackageStartupMessages({
 library(fitbitr)
 library(httpuv)
 library(tidyverse)
@@ -9,12 +10,13 @@ library(ggrepel)
 library(scales)
 library(cowplot)
 library(padr)
-library(mlr3)
 library(mlr)
 library(zoo)
 library(here)
 library(lintr)
 library(styler)
+}
+)
 lint("token_generation.R")
 style_file("token_generation.R")
 
@@ -26,7 +28,7 @@ callback <- "http://localhost:1410/"
 token <- generate_token(client_id, client_secret)
 
 
-# Query API for "date" data ----------------------------------------------------
+# API query for date "x" data ----------------------------------------------------
 add_dates <- function(x) {
   date <- Sys.Date() + x
   
@@ -39,7 +41,7 @@ add_dates <- function(x) {
     (x / 60)
   }
 
-  # Join and clean tables
+  # Data processing: joining tables and cleaning
   x <- left_join(summary, sleep_summary, by = "date") %>%
     left_join(., distance, by = "date")
   x_clean <- x %>%
@@ -77,7 +79,7 @@ add_dates <- function(x) {
                                      "dates_concatonated.csv"), 
             row.names = FALSE)
 }
-# Run function. 0 represents current day. Pull yesterday with -1 ---------------
+# Function: 0 represents current day. Pull yesterday with -1 ---------------
 add_dates(0)
 
 
