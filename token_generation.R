@@ -125,12 +125,15 @@ sleep_1 <- ready_data %>%
     axis.ticks.x = element_line(colour = "grey50", size = 0.2),
     axis.text.x = element_text(
       angle = 25,
-      vjust = 1.0, hjust = 1.0),
-    plot.caption = element_text(size=14, 
-                               face="italic", color="black"),
+      vjust = 1.0, hjust = 1.0
+    ),
+    plot.caption = element_text(
+      size = 14,
+      face = "italic", color = "black"
+    ),
     legend.title = element_text(size = 16, face = "bold"),
     legend.text = element_text(size = 16)
-    ) +
+  ) +
   labs(
     x = "Time of sleep onset",
     y = "Sleep duration (hours)",
@@ -142,7 +145,7 @@ sleep_1 <- ready_data %>%
     Early = before midnight; Late = after midnight \
     Linear model represented by black line"
   )
-sleep_1
+
 # Plot: sleep duration distribution
 sleep_2 <- ready_data %>%
   filter(!(h_o_s >= 6 & h_o_s <= 19)) %>%
@@ -157,15 +160,13 @@ sleep_2 <- ready_data %>%
   geom_vline(aes(xintercept = quantile(Sleep_hours, 0.75)),
     linetype = "dashed", alpha = 0.6, size = 1.5
   ) +
-  geom_text(aes(x = 8.5, label = paste("median = ", round(median(Sleep_hours), digits = 2)
-  ), y = 0.45),
-  colour = "black", angle = 0, size = 5.5
+  geom_text(aes(x = 8.5, label = paste("median = ", round(median(Sleep_hours), digits = 2)), y = 0.45),
+    colour = "black", angle = 0, size = 5.5
   ) +
   geom_text(aes(
     x = 8.5, label = paste("n = ", length(Sleep_hours)),
     y = 0.42
-  ), colour = "black", angle = 0, size = 5.5
-  ) +
+  ), colour = "black", angle = 0, size = 5.5) +
   theme_ipsum(
     axis_title_just = "cc",
     axis_title_face = "bold",
@@ -178,8 +179,10 @@ sleep_2 <- ready_data %>%
     axis.line.x = element_line("grey50"),
     axis.ticks = element_line(colour = "grey50", size = 0.2),
     axis.ticks.x = element_line(colour = "grey50", size = 0.2),
-    plot.caption = element_text(size=14, 
-                               face="italic", color="black")
+    plot.caption = element_text(
+      size = 14,
+      face = "italic", color = "black"
+    )
   ) +
   labs(
     x = "Sleep duration (hours)",
@@ -189,16 +192,19 @@ sleep_2 <- ready_data %>%
     title = "Distribution of sleep duration",
     subtitle = "April 2022 : Present"
   )
-sleep_2
+
 # Facet plot: bind sleep plots rowwise
 sleep_plots <- plot_grid(sleep_1, sleep_2, nrow = 2, labels = "") %>%
   plot_grid()
-sleep_plots
+pdf_null_device()
 save_plot(
   plot = sleep_plots, here("plots", "sleep_plots.tiff"),
   dpi = 300, base_width = 16, base_height = 12
 )
-
+save_plot(
+  plot = sleep_plots, "C:/Users/INGRAM_T/Dropbox/Auto_plots/fitbit_plot_one.tiff",
+  dpi = 300, base_width = 16, base_height = 12
+)
 # Plot: resting heart rate
 rHR_plot <- ready_data %>%
   distinct(Date, .keep_all = TRUE) %>%
@@ -237,7 +243,10 @@ rHR_plot <- ready_data %>%
     ),
     axis.line.x = element_line("grey50"),
     axis.ticks = element_line(colour = "grey50", size = 0.2),
-    axis.ticks.x = element_line(colour = "grey50", size = 0.2)
+    axis.ticks.x = element_line(colour = "grey50", size = 0.2),
+    plot.caption = element_text(
+      size = 14,
+      face = "italic", color = "black")
   ) +
   labs(
     caption = "Vertical dotted lines represent notable events: \
@@ -303,24 +312,33 @@ steps_plot <- impute_steps %>%
     axis.line.x = element_line("grey50"),
     axis.ticks = element_line(colour = "grey50", size = 0.2),
     axis.ticks.x = element_line(colour = "grey50", size = 0.2),
-    legend.position = "bottom"
+    legend.position = "bottom",
+    plot.caption = element_text(
+      size = 14,
+      face = "italic", color = "black"
+    )
   ) +
   labs(
     fill = "Data source",
     caption = "Vertical dotted lines represent notable events: \
     green = holiday; red = illness; blue = notable event.
-          Blue 2022-05-03 = Started new job.
-          No data collected between 16-04 : 21:04 - \
-    values imputed using mean steps for entire period.
+          Blue 2022-05-03 = Started new job. \
+    Dates without data: values imputed using mean steps for entire period.
           Path represents three-day moving average (mean).",
     title = "Daily step count",
     subtitle = "April 2022 : Present"
   )
 steps_plot
-# Facet plot: bind rHR and step plots rowwise
+# Facet plot: bind rHR and step plots rowwise 
 rHR_steps_plots <- plot_grid(rHR_plot, steps_plot, nrow = 2, labels = "") %>%
   plot_grid()
 save_plot(
   plot = rHR_steps_plots, here("plots", "rHR_steps_plots.tiff"),
+  dpi = 300, base_width = 16, base_height = 12
+)
+
+# Secondary plot output: Dropbox -----------------------------------------------
+save_plot(
+  plot = rHR_steps_plots, "C:/Users/INGRAM_T/Dropbox/Auto_plots/fitbit_plot_two.tiff",
   dpi = 300, base_width = 16, base_height = 12
 )
