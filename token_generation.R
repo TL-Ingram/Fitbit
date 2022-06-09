@@ -49,7 +49,7 @@ add_dates <- function(x) {
     rename(
       Date = 1,
       Calories = 2,
-      rhr = 3,
+      rHR = 3,
       Steps = 4,
       sSleep = 5,
       "Sleep_hours" = 6
@@ -99,17 +99,13 @@ sleep_1 <- ready_data %>%
   filter(!(h_o_s >= 6 & h_o_s <= 19)) %>%
   filter(!(Sleep_hours < 4)) %>%
   ggplot(aes(sSleep, Sleep_hours, label = sSleep, colour = h_o_s)) +
-  geom_point(size = 4) +
-  scale_colour_manual(values = c("steelblue", "black")) +
-  geom_text(
-    hjust = 0, vjust = 1.5, size = 4.5,
-    aes(label = format(sSleep, format = "%H:%M"))
-  ) +
+  geom_point(size = 4, alpha = 0.5) +
+  geom_line(aes(sSleep, Sleep_hours), stat = "smooth", size = 1.5, alpha = 0.7, colour = "black", se = FALSE, method = "lm") +
+  scale_colour_manual(values = c("blue", "red")) +
   expand_limits(y = 4:10) +
   scale_y_continuous(breaks = seq(4, 10, 1)) +
   scale_x_datetime(
-    breaks = date_breaks("24 hours"),
-    minor_breaks = date_breaks("24 hours"),
+    breaks = date_breaks("7 days"),
     labels = date_format("%b %d")
   ) +
   geom_hline(aes(yintercept = 7),
@@ -118,85 +114,98 @@ sleep_1 <- ready_data %>%
   theme_ipsum(
     axis_title_just = "cc",
     axis_title_face = "bold",
-    axis_text_size = 10,
-    axis_title_size = 14
+    axis_text_size = 16,
+    axis_title_size = 18
   ) +
   theme(
     panel.grid.minor = element_blank(),
     panel.grid.major = element_blank(),
     axis.line.x = element_line("grey50"),
     axis.ticks = element_line(colour = "grey50", size = 0.2),
-    axis.ticks.x = element_line(colour = "grey50", size = 0.2)
-  ) +
+    axis.ticks.x = element_line(colour = "grey50", size = 0.2),
+    axis.text.x = element_text(
+      angle = 25,
+      vjust = 1.0, hjust = 1.0),
+    plot.caption = element_text(size=14, 
+                               face="italic", color="black"),
+    legend.title = element_text(size = 16, face = "bold"),
+    legend.text = element_text(size = 16)
+    ) +
   labs(
     x = "Time of sleep onset",
     y = "Sleep duration (hours)",
     colour = "Sleep time",
-    title = "Sleep onset time against sleep duration",
+    title = "Sleep onset against sleep duration",
     subtitle = "April 2022 : Present",
     caption = "Horizontal dotted line represents subjectively appreciated \
-    `good` sleep time quantity"
+    `good` sleep time quantity. \
+    Early = before midnight; Late = after midnight \
+    Linear model represented by black line"
   )
-
+sleep_1
 # Plot: sleep duration distribution
 sleep_2 <- ready_data %>%
   filter(!(h_o_s >= 6 & h_o_s <= 19)) %>%
   filter(!(Sleep_hours < 4)) %>%
   ggplot(aes(Sleep_hours)) +
-  geom_density() +
-  geom_vline(aes(xintercept = median(Sleep_hours)), size = 1) +
+  geom_density(fill = "blue", alpha = 0.1) +
+  geom_line(stat = "density", size = 1.5, colour = "blue", alpha = 0.2) +
+  geom_vline(aes(xintercept = median(Sleep_hours)), size = 1.5, alpha = 0.6) +
   geom_vline(aes(xintercept = quantile(Sleep_hours, 0.25)),
-    linetype = "dashed", alpha = 0.4
+    linetype = "dashed", alpha = 0.6, size = 1.5
   ) +
   geom_vline(aes(xintercept = quantile(Sleep_hours, 0.75)),
-    linetype = "dashed", alpha = 0.4
+    linetype = "dashed", alpha = 0.6, size = 1.5
   ) +
-  geom_text(aes(x = 8.5, label = paste("mean = ", round(mean(Sleep_hours)),
-    digits = 2
+  geom_text(aes(x = 8.5, label = paste("median = ", round(median(Sleep_hours), digits = 2)
   ), y = 0.45),
-  colour = "black", angle = 0
+  colour = "black", angle = 0, size = 5.5
   ) +
   geom_text(aes(
     x = 8.5, label = paste("n = ", length(Sleep_hours)),
     y = 0.42
-  ), colour = "black", angle = 0) +
+  ), colour = "black", angle = 0, size = 5.5
+  ) +
   theme_ipsum(
     axis_title_just = "cc",
     axis_title_face = "bold",
-    axis_text_size = 10,
-    axis_title_size = 14
+    axis_text_size = 16,
+    axis_title_size = 18
   ) +
   theme(
     panel.grid.minor = element_blank(),
     panel.grid.major = element_blank(),
     axis.line.x = element_line("grey50"),
     axis.ticks = element_line(colour = "grey50", size = 0.2),
-    axis.ticks.x = element_line(colour = "grey50", size = 0.2)
+    axis.ticks.x = element_line(colour = "grey50", size = 0.2),
+    plot.caption = element_text(size=14, 
+                               face="italic", color="black")
   ) +
   labs(
     x = "Sleep duration (hours)",
     y = "Density",
-    caption = "Lines depict mean (solid), 1st and 3rd quartiles (dashed). \
-    Naps removed.",
-    title = "Density distribution of sleep duration",
+    caption = "Lines depict median (solid), 1st and 3rd quartiles (dashed). \
+    Naps removed. n = number of days included in plot construction",
+    title = "Distribution of sleep duration",
     subtitle = "April 2022 : Present"
   )
-
+sleep_2
 # Facet plot: bind sleep plots rowwise
 sleep_plots <- plot_grid(sleep_1, sleep_2, nrow = 2, labels = "") %>%
   plot_grid()
+sleep_plots
 save_plot(
   plot = sleep_plots, here("plots", "sleep_plots.tiff"),
   dpi = 300, base_width = 16, base_height = 12
 )
 
 # Plot: resting heart rate
-rhr_plot <- ready_data %>%
+rHR_plot <- ready_data %>%
   distinct(Date, .keep_all = TRUE) %>%
-  ggplot(aes(Date, rhr)) +
+  ggplot(aes(Date, rHR)) +
   geom_point(alpha = 0.8) +
   geom_line(size = 1.5, alpha = 0.5) +
-  scale_x_date(date_labels = "%b-%d", breaks = "1 day") +
+  scale_x_date(date_labels = "%b-%d", breaks = "7 day") +
   scale_y_continuous(breaks = seq(50, 66, 1)) +
   geom_vline(aes(xintercept = as.Date("2022-04-11")),
     linetype = "dashed", alpha = 0.5, colour = "green", size = 1
@@ -216,8 +225,8 @@ rhr_plot <- ready_data %>%
   theme_ipsum(
     axis_title_just = "cc",
     axis_title_face = "bold",
-    axis_text_size = 10,
-    axis_title_size = 14
+    axis_text_size = 16,
+    axis_title_size = 18
   ) +
   theme(
     panel.grid.minor = element_blank(),
@@ -237,7 +246,7 @@ rhr_plot <- ready_data %>%
     title = "Mean daily resting heart rate",
     subtitle = "April 2022 : Present"
   )
-
+rHR_plot
 # Data processing: imputation and labelling of missing step data ---------------
 impute_steps <- ready_data %>%
   distinct(Date, .keep_all = TRUE) %>%
@@ -246,7 +255,7 @@ impute_steps <- ready_data %>%
 imp <- impute(impute_steps, cols = list(Steps = imputeMean()))
 impute_steps <- as_tibble(imp$data) %>%
   mutate(imputed = case_when(
-    rhr >= 1 ~ "Organic",
+    rHR >= 1 ~ "Organic",
     TRUE ~ "Imputed"
   )) %>%
   mutate(threeday = rollmean(Steps, k = 3, fill = NA)) %>%
@@ -259,7 +268,7 @@ steps_plot <- impute_steps %>%
   geom_col(alpha = 0.2, aes(fill = imputed)) +
   geom_path(aes(Date, threeday), size = 1.5, alpha = 0.5) +
   scale_fill_manual(values = c("grey65", "grey25")) +
-  scale_x_date(date_labels = "%b-%d", breaks = "1 day") +
+  scale_x_date(date_labels = "%b-%d", breaks = "7 day") +
   geom_vline(aes(xintercept = as.Date("2022-04-11")),
     linetype = "dashed", alpha = 0.5, colour = "green", size = 1
   ) +
@@ -281,8 +290,8 @@ steps_plot <- impute_steps %>%
   theme_ipsum(
     axis_title_just = "cc",
     axis_title_face = "bold",
-    axis_text_size = 10,
-    axis_title_size = 14
+    axis_text_size = 16,
+    axis_title_size = 18
   ) +
   theme(
     panel.grid.minor = element_blank(),
@@ -307,11 +316,11 @@ steps_plot <- impute_steps %>%
     title = "Daily step count",
     subtitle = "April 2022 : Present"
   )
-
-# Facet plot: bind rhr and step plots rowwise
-rhr_steps_plots <- plot_grid(rhr_plot, steps_plot, nrow = 2, labels = "") %>%
+steps_plot
+# Facet plot: bind rHR and step plots rowwise
+rHR_steps_plots <- plot_grid(rHR_plot, steps_plot, nrow = 2, labels = "") %>%
   plot_grid()
 save_plot(
-  plot = rhr_steps_plots, here("plots", "rhr_steps_plots.tiff"),
+  plot = rHR_steps_plots, here("plots", "rHR_steps_plots.tiff"),
   dpi = 300, base_width = 16, base_height = 12
 )
