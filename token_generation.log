@@ -424,3 +424,79 @@ pad applied on the interval: day
 There were 50 or more warnings (use warnings() to see the first 50)
 There were 33 warnings (use warnings() to see them)
 There were 50 or more warnings (use warnings() to see the first 50)
+Warning message:
+In normalizePath(path.expand(path), winslash, mustWork) :
+  path[1]="U:": The network path was not found
+Warning message:
+In normalizePath(path.expand(path), winslash, mustWork) :
+  path[1]="U:": The network path was not found
+Warning message:
+In normalizePath(path.expand(path), winslash, mustWork) :
+  path[1]="U:": The network path was not found
+Warning message:
+In normalizePath(path.expand(path), winslash, mustWork) :
+  path[1]="U:": The network path was not found
+Warning message:
+In normalizePath(path.expand(path), winslash, mustWork) :
+  path[1]="U:": The network path was not found
+C:\R_projects\Fitbit\token_generation.R:30:1: style: Lines should not be more than 80 characters.
+# API query for date "x" data ----------------------------------------------------
+^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\R_projects\Fitbit\token_generation.R:39:24: style: Variable and function name style should be snake_case.
+  scale <- function(x, na.rm = FALSE) {
+                       ^~~~~
+C:\R_projects\Fitbit\token_generation.R:103:1: style: Lines should not be more than 80 characters.
+  geom_line(aes(sSleep, Sleep_hours), stat = "smooth", size = 1.5, alpha = 0.7, colour = "black", se = FALSE, method = "lm") +
+^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\R_projects\Fitbit\token_generation.R:163:1: style: Lines should not be more than 80 characters.
+  geom_text(aes(x = 8.5, label = paste("median = ", round(median(Sleep_hours), digits = 2)), y = 0.45),
+^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\R_projects\Fitbit\token_generation.R:205:1: style: Lines should not be more than 80 characters.
+  plot = sleep_plots, "C:/Users/INGRAM_T/Dropbox/Auto_plots/fitbit_plot_one.tiff",
+^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\R_projects\Fitbit\token_generation.R:209:1: style: Variable and function name style should be snake_case.
+rHR_plot <- ready_data %>%
+^~~~~~~~
+C:\R_projects\Fitbit\token_generation.R:332:46: style: Trailing whitespace is superfluous.
+# Facet plot: bind rHR and step plots rowwise 
+                                             ^
+C:\R_projects\Fitbit\token_generation.R:333:1: style: Variable and function name style should be snake_case.
+rHR_steps_plots <- plot_grid(rHR_plot, steps_plot, nrow = 2, labels = "") %>%
+^~~~~~~~~~~~~~~
+C:\R_projects\Fitbit\token_generation.R:342:1: style: Lines should not be more than 80 characters.
+  plot = rHR_steps_plots, "C:/Users/INGRAM_T/Dropbox/Auto_plots/fitbit_plot_two.tiff",
+^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Styling  1  files:
+ token_generation.R ℹ 
+────────────────────────────────────────
+Status	Count	Legend 
+✔ 	0	File unchanged.
+ℹ 	1	File changed.
+✖ 	0	Styling threw an error.
+────────────────────────────────────────
+Please review the changes carefully!
+Waiting for authentication in browser...
+Press Esc/Ctrl + C to abort
+Please point your browser to the following url: 
+https://www.fitbit.com/oauth2/authorize?client_id=238GCK&scope=sleep%20activity%20heartrate%20location%20nutrition%20profile%20settings%20social%20weight&redirect_uri=http%3A%2F%2Flocalhost%3A1410%2F&response_type=code&state=rWQU3ybpil
+Authentication complete.
+Rows: 56 Columns: 8
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: ","
+chr  (1): h_o_s
+dbl  (5): Calories, rHR, Steps, Sleep_hours, Distance
+dttm (1): sSleep
+date (1): Date
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.
+`geom_smooth()` using formula 'y ~ x'
+There were 50 or more warnings (use warnings() to see the first 50)
+There were 50 or more warnings (use warnings() to see the first 50)
+There were 50 or more warnings (use warnings() to see the first 50)
+There were 50 or more warnings (use warnings() to see the first 50)
+pad applied on the interval: day
+There were 50 or more warnings (use warnings() to see the first 50)
+There were 33 warnings (use warnings() to see them)
+There were 50 or more warnings (use warnings() to see the first 50)
+There were 50 or more warnings (use warnings() to see the first 50)

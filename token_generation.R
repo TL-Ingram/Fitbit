@@ -246,7 +246,8 @@ rHR_plot <- ready_data %>%
     axis.ticks.x = element_line(colour = "grey50", size = 0.2),
     plot.caption = element_text(
       size = 14,
-      face = "italic", color = "black")
+      face = "italic", color = "black"
+    )
   ) +
   labs(
     caption = "Vertical dotted lines represent notable events: \
@@ -329,7 +330,7 @@ steps_plot <- impute_steps %>%
     subtitle = "April 2022 : Present"
   )
 steps_plot
-# Facet plot: bind rHR and step plots rowwise 
+# Facet plot: bind rHR and step plots rowwise
 rHR_steps_plots <- plot_grid(rHR_plot, steps_plot, nrow = 2, labels = "") %>%
   plot_grid()
 save_plot(
