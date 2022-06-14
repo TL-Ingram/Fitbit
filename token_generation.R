@@ -15,6 +15,7 @@ suppressPackageStartupMessages({
   library(here)
   library(lintr)
   library(styler)
+  library(hms)
 })
 lint("token_generation.R")
 style_file("token_generation.R")
