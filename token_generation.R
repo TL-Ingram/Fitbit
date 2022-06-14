@@ -1,22 +1,22 @@
 # Pkg load ---------------------------------------------------------------------
 suppressPackageStartupMessages({
-library(fitbitr)
-library(httpuv)
-library(tidyverse)
-library(lubridate)
-library(viridis)
-library(hrbrthemes)
-library(ggrepel)
-library(scales)
-library(cowplot)
-library(padr)
-library(mlr)
-library(zoo)
-library(here)
-library(lintr)
-library(styler)
-}
-)
+  library(fitbitr)
+  library(httpuv)
+  library(tidyverse)
+  library(lubridate)
+  library(viridis)
+  library(hrbrthemes)
+  library(ggrepel)
+  library(scales)
+  library(cowplot)
+  library(padr)
+  library(mlr)
+  library(zoo)
+  library(here)
+  library(lintr)
+  library(styler)
+  library(hms)
+})
 lint("token_generation.R")
 style_file("token_generation.R")
 
@@ -31,8 +31,8 @@ token <- generate_token(client_id, client_secret)
 # API query for date "x" data ----------------------------------------------------
 add_dates <- function(x) {
   date <- Sys.Date() + x
-  
-  #Fitbit tables queried
+
+  # Fitbit tables queried
   summary <- activity_summary(date)
   sleep_summary <- sleep_summary(date)
   distance <- distance((date), (date - 1))
@@ -50,7 +50,7 @@ add_dates <- function(x) {
     rename(
       Date = 1,
       Calories = 2,
-      rhr = 3,
+      rHR = 3,
       Steps = 4,
       sSleep = 5,
       "Sleep_hours" = 6
@@ -65,9 +65,12 @@ add_dates <- function(x) {
     ))
 
   # Output "date" file locally and concatonate with historic dates
-  write.csv(x_clean, here("archive_daily_output", 
-                          paste(date, "_data.csv", sep = "")), 
-            row.names = FALSE)
+  write.csv(x_clean, here(
+    "archive_daily_output",
+    paste(date, "_data.csv", sep = "")
+  ),
+  row.names = FALSE
+  )
   files_update_daily <- do.call(
     rbind,
     lapply(list.files(here("archive_daily_output"), full.names = TRUE),
@@ -75,12 +78,15 @@ add_dates <- function(x) {
       header = TRUE, sep = ","
     )
   )
-  write.csv(files_update_daily, here("concatonated_data", 
-                                     "dates_concatonated.csv"), 
-            row.names = FALSE)
+  write.csv(files_update_daily, here(
+    "concatonated_data",
+    "dates_concatonated.csv"
+  ),
+  row.names = FALSE
+  )
 }
 # Function: 0 represents current day. Pull yesterday with -1 ---------------
-add_dates(0)
+add_dates(-1)
 
 
 # Data processing: adjusting data type for "Date" variable ---------------------
@@ -94,38 +100,51 @@ sleep_1 <- ready_data %>%
   filter(!(h_o_s >= 6 & h_o_s <= 19)) %>%
   filter(!(Sleep_hours < 4)) %>%
   ggplot(aes(sSleep, Sleep_hours, label = sSleep, colour = h_o_s)) +
-  geom_point(size = 4) +
-  scale_colour_manual(values = c("steelblue", "black")) +
-  geom_text(hjust = 0, vjust = 1.5, size = 4.5, 
-            aes(label = format(sSleep, format = "%H:%M"))) +
+  geom_point(size = 4, alpha = 0.5) +
+  geom_line(aes(sSleep, Sleep_hours), stat = "smooth", size = 1.5, alpha = 0.7, colour = "black", se = FALSE, method = "lm") +
+  scale_colour_manual(values = c("blue", "red")) +
   expand_limits(y = 4:10) +
   scale_y_continuous(breaks = seq(4, 10, 1)) +
-  scale_x_datetime(breaks = date_breaks("24 hours"), 
-                   minor_breaks = date_breaks("24 hours"), 
-                   labels = date_format("%b %d")) +
-  geom_hline(aes(yintercept = 7), 
-             size = 1, linetype = "dashed", colour = "#482677FF") +
+  scale_x_datetime(
+    breaks = date_breaks("7 days"),
+    labels = date_format("%b %d")
+  ) +
+  geom_hline(aes(yintercept = 7),
+    size = 1, linetype = "dashed", colour = "#482677FF"
+  ) +
   theme_ipsum(
     axis_title_just = "cc",
     axis_title_face = "bold",
-    axis_text_size = 10,
-    axis_title_size = 14
+    axis_text_size = 16,
+    axis_title_size = 18
   ) +
   theme(
     panel.grid.minor = element_blank(),
     panel.grid.major = element_blank(),
     axis.line.x = element_line("grey50"),
     axis.ticks = element_line(colour = "grey50", size = 0.2),
-    axis.ticks.x = element_line(colour = "grey50", size = 0.2)
+    axis.ticks.x = element_line(colour = "grey50", size = 0.2),
+    axis.text.x = element_text(
+      angle = 25,
+      vjust = 1.0, hjust = 1.0
+    ),
+    plot.caption = element_text(
+      size = 14,
+      face = "italic", color = "black"
+    ),
+    legend.title = element_text(size = 16, face = "bold"),
+    legend.text = element_text(size = 16)
   ) +
   labs(
     x = "Time of sleep onset",
     y = "Sleep duration (hours)",
     colour = "Sleep time",
-    title = "Sleep onset time against sleep duration",
+    title = "Sleep onset against sleep duration",
     subtitle = "April 2022 : Present",
-    caption = "Horizontal dotted line represents subjectively appreciated \  
-    `good` sleep time quantity"
+    caption = "Horizontal dotted line represents subjectively appreciated \
+    `good` sleep time quantity. \
+    Early = before midnight; Late = after midnight \
+    Linear model represented by black line"
   )
 
 # Plot: sleep duration distribution
@@ -133,68 +152,88 @@ sleep_2 <- ready_data %>%
   filter(!(h_o_s >= 6 & h_o_s <= 19)) %>%
   filter(!(Sleep_hours < 4)) %>%
   ggplot(aes(Sleep_hours)) +
-  geom_density() +
-  geom_vline(aes(xintercept = median(Sleep_hours)), size = 1) +
-  geom_vline(aes(xintercept = quantile(Sleep_hours, 0.25)), 
-             linetype = "dashed", alpha = 0.4) +
-  geom_vline(aes(xintercept = quantile(Sleep_hours, 0.75)), 
-             linetype = "dashed", alpha = 0.4) +
-  geom_text(aes(x = 8.5, label = paste("mean = ", round(mean(Sleep_hours)), 
-                                       digits = 2), y = 0.45), 
-            colour = "black", angle = 0) +
-  geom_text(aes(x = 8.5, label = paste("n = ", length(Sleep_hours)), 
-                y = 0.42), colour = "black", angle = 0) +
+  geom_density(fill = "blue", alpha = 0.1) +
+  geom_line(stat = "density", size = 1.5, colour = "blue", alpha = 0.2) +
+  geom_vline(aes(xintercept = median(Sleep_hours)), size = 1.5, alpha = 0.6) +
+  geom_vline(aes(xintercept = quantile(Sleep_hours, 0.25)),
+    linetype = "dashed", alpha = 0.6, size = 1.5
+  ) +
+  geom_vline(aes(xintercept = quantile(Sleep_hours, 0.75)),
+    linetype = "dashed", alpha = 0.6, size = 1.5
+  ) +
+  geom_text(aes(x = 8.5, label = paste("median = ", round(median(Sleep_hours), digits = 2)), y = 0.45),
+    colour = "black", angle = 0, size = 5.5
+  ) +
+  geom_text(aes(
+    x = 8.5, label = paste("n = ", length(Sleep_hours)),
+    y = 0.42
+  ), colour = "black", angle = 0, size = 5.5) +
   theme_ipsum(
     axis_title_just = "cc",
     axis_title_face = "bold",
-    axis_text_size = 10,
-    axis_title_size = 14
+    axis_text_size = 16,
+    axis_title_size = 18
   ) +
   theme(
     panel.grid.minor = element_blank(),
     panel.grid.major = element_blank(),
     axis.line.x = element_line("grey50"),
     axis.ticks = element_line(colour = "grey50", size = 0.2),
-    axis.ticks.x = element_line(colour = "grey50", size = 0.2)
+    axis.ticks.x = element_line(colour = "grey50", size = 0.2),
+    plot.caption = element_text(
+      size = 14,
+      face = "italic", color = "black"
+    )
   ) +
   labs(
     x = "Sleep duration (hours)",
     y = "Density",
-    caption = "Lines depict mean (solid), 1st and 3rd quartiles (dashed). \  
-    Naps removed.",
-    title = "Density distribution of sleep duration",
+    caption = "Lines depict median (solid), 1st and 3rd quartiles (dashed). \
+    Naps removed. n = number of days included in plot construction",
+    title = "Distribution of sleep duration",
     subtitle = "April 2022 : Present"
   )
 
 # Facet plot: bind sleep plots rowwise
 sleep_plots <- plot_grid(sleep_1, sleep_2, nrow = 2, labels = "") %>%
   plot_grid()
-save_plot(plot = sleep_plots, here("plots", "sleep_plots.tiff"), 
-          dpi = 300, base_width = 16, base_height = 12)
-
+pdf_null_device()
+save_plot(
+  plot = sleep_plots, here("plots", "sleep_plots.tiff"),
+  dpi = 300, base_width = 16, base_height = 12
+)
+save_plot(
+  plot = sleep_plots, "C:/Users/INGRAM_T/Dropbox/Auto_plots/fitbit_plot_one.tiff",
+  dpi = 300, base_width = 16, base_height = 12
+)
 # Plot: resting heart rate
-rhr_plot <- ready_data %>%
+rHR_plot <- ready_data %>%
   distinct(Date, .keep_all = TRUE) %>%
-  ggplot(aes(Date, rhr)) +
+  ggplot(aes(Date, rHR)) +
   geom_point(alpha = 0.8) +
   geom_line(size = 1.5, alpha = 0.5) +
-  scale_x_date(date_labels = "%b-%d", breaks = "1 day") +
+  scale_x_date(date_labels = "%b-%d", breaks = "7 day") +
   scale_y_continuous(breaks = seq(50, 66, 1)) +
-  geom_vline(aes(xintercept = as.Date("2022-04-11")), 
-             linetype = "dashed", alpha = 0.5, colour = "green", size = 1) +
-  geom_vline(aes(xintercept = as.Date("2022-04-18")), 
-             linetype = "dashed", alpha = 0.5, colour = "green", size = 1) +
-  geom_vline(aes(xintercept = as.Date("2022-04-19")), 
-             linetype = "dashed", alpha = 0.5, colour = "red", size = 1) +
-  geom_vline(aes(xintercept = as.Date("2022-04-26")), 
-             linetype = "dashed", alpha = 0.5, colour = "red", size = 1) +
-  geom_vline(aes(xintercept = as.Date("2022-05-03")), 
-             linetype = "dashed", alpha = 0.5, colour = "blue", size = 1) +
+  geom_vline(aes(xintercept = as.Date("2022-04-11")),
+    linetype = "dashed", alpha = 0.5, colour = "green", size = 1
+  ) +
+  geom_vline(aes(xintercept = as.Date("2022-04-18")),
+    linetype = "dashed", alpha = 0.5, colour = "green", size = 1
+  ) +
+  geom_vline(aes(xintercept = as.Date("2022-04-19")),
+    linetype = "dashed", alpha = 0.5, colour = "red", size = 1
+  ) +
+  geom_vline(aes(xintercept = as.Date("2022-04-26")),
+    linetype = "dashed", alpha = 0.5, colour = "red", size = 1
+  ) +
+  geom_vline(aes(xintercept = as.Date("2022-05-03")),
+    linetype = "dashed", alpha = 0.5, colour = "blue", size = 1
+  ) +
   theme_ipsum(
     axis_title_just = "cc",
     axis_title_face = "bold",
-    axis_text_size = 10,
-    axis_title_size = 14
+    axis_text_size = 16,
+    axis_title_size = 18
   ) +
   theme(
     panel.grid.minor = element_blank(),
@@ -205,16 +244,20 @@ rhr_plot <- ready_data %>%
     ),
     axis.line.x = element_line("grey50"),
     axis.ticks = element_line(colour = "grey50", size = 0.2),
-    axis.ticks.x = element_line(colour = "grey50", size = 0.2)
+    axis.ticks.x = element_line(colour = "grey50", size = 0.2),
+    plot.caption = element_text(
+      size = 14,
+      face = "italic", color = "black"
+    )
   ) +
-  labs (
-    caption = "Vertical dotted lines represent notable events: \  
-    green = holiday; red = illness; blue = notable event. \  
+  labs(
+    caption = "Vertical dotted lines represent notable events: \
+    green = holiday; red = illness; blue = notable event. \
     Blue 2022-05-03 = Started new job.",
     title = "Mean daily resting heart rate",
     subtitle = "April 2022 : Present"
-)
-
+  )
+rHR_plot
 # Data processing: imputation and labelling of missing step data ---------------
 impute_steps <- ready_data %>%
   distinct(Date, .keep_all = TRUE) %>%
@@ -223,7 +266,7 @@ impute_steps <- ready_data %>%
 imp <- impute(impute_steps, cols = list(Steps = imputeMean()))
 impute_steps <- as_tibble(imp$data) %>%
   mutate(imputed = case_when(
-    rhr >= 1 ~ "Organic",
+    rHR >= 1 ~ "Organic",
     TRUE ~ "Imputed"
   )) %>%
   mutate(threeday = rollmean(Steps, k = 3, fill = NA)) %>%
@@ -236,24 +279,30 @@ steps_plot <- impute_steps %>%
   geom_col(alpha = 0.2, aes(fill = imputed)) +
   geom_path(aes(Date, threeday), size = 1.5, alpha = 0.5) +
   scale_fill_manual(values = c("grey65", "grey25")) +
-  scale_x_date(date_labels = "%b-%d", breaks = "1 day") +
-  geom_vline(aes(xintercept = as.Date("2022-04-11")), 
-             linetype = "dashed", alpha = 0.5, colour = "green", size = 1) +
-  geom_vline(aes(xintercept = as.Date("2022-04-18")), 
-             linetype = "dashed", alpha = 0.5, colour = "green", size = 1) +
-  geom_vline(aes(xintercept = as.Date("2022-04-19")), 
-             linetype = "dashed", alpha = 0.5, colour = "red", size = 1) +
-  geom_vline(aes(xintercept = as.Date("2022-04-26")), 
-             linetype = "dashed", alpha = 0.5, colour = "red", size = 1) +
-  geom_vline(aes(xintercept = as.Date("2022-05-03")), 
-             linetype = "dashed", alpha = 0.5, colour = "blue", size = 1) +
-  geom_hline(aes(yintercept = 10000), 
-             size = 1, linetype = "dashed", colour = "#482677FF", alpha = 0.3) +
+  scale_x_date(date_labels = "%b-%d", breaks = "7 day") +
+  geom_vline(aes(xintercept = as.Date("2022-04-11")),
+    linetype = "dashed", alpha = 0.5, colour = "green", size = 1
+  ) +
+  geom_vline(aes(xintercept = as.Date("2022-04-18")),
+    linetype = "dashed", alpha = 0.5, colour = "green", size = 1
+  ) +
+  geom_vline(aes(xintercept = as.Date("2022-04-19")),
+    linetype = "dashed", alpha = 0.5, colour = "red", size = 1
+  ) +
+  geom_vline(aes(xintercept = as.Date("2022-04-26")),
+    linetype = "dashed", alpha = 0.5, colour = "red", size = 1
+  ) +
+  geom_vline(aes(xintercept = as.Date("2022-05-03")),
+    linetype = "dashed", alpha = 0.5, colour = "blue", size = 1
+  ) +
+  geom_hline(aes(yintercept = 10000),
+    size = 1, linetype = "dashed", colour = "#482677FF", alpha = 0.3
+  ) +
   theme_ipsum(
     axis_title_just = "cc",
     axis_title_face = "bold",
-    axis_text_size = 10,
-    axis_title_size = 14
+    axis_text_size = 16,
+    axis_title_size = 18
   ) +
   theme(
     panel.grid.minor = element_blank(),
@@ -265,23 +314,33 @@ steps_plot <- impute_steps %>%
     axis.line.x = element_line("grey50"),
     axis.ticks = element_line(colour = "grey50", size = 0.2),
     axis.ticks.x = element_line(colour = "grey50", size = 0.2),
-    legend.position = "bottom"
+    legend.position = "bottom",
+    plot.caption = element_text(
+      size = 14,
+      face = "italic", color = "black"
+    )
   ) +
   labs(
     fill = "Data source",
-    caption = "Vertical dotted lines represent notable events: \  
+    caption = "Vertical dotted lines represent notable events: \
     green = holiday; red = illness; blue = notable event.
-          Blue 2022-05-03 = Started new job.
-          No data collected between 16-04 : 21:04 - \  
-    values imputed using mean steps for entire period.
+          Blue 2022-05-03 = Started new job. \
+    Dates without data: values imputed using mean steps for entire period.
           Path represents three-day moving average (mean).",
     title = "Daily step count",
     subtitle = "April 2022 : Present"
   )
-
-# Facet plot: bind rhr and step plots rowwise
-rhr_steps_plots <- plot_grid(rhr_plot, steps_plot, nrow = 2, labels = "") %>%
+steps_plot
+# Facet plot: bind rHR and step plots rowwise
+rHR_steps_plots <- plot_grid(rHR_plot, steps_plot, nrow = 2, labels = "") %>%
   plot_grid()
-save_plot(plot = rhr_steps_plots, here("plots", "rhr_steps_plots.tiff"), 
-          dpi = 300, base_width = 16, base_height = 12)
+save_plot(
+  plot = rHR_steps_plots, here("plots", "rHR_steps_plots.tiff"),
+  dpi = 300, base_width = 16, base_height = 12
+)
 
+# Secondary plot output: Dropbox -----------------------------------------------
+save_plot(
+  plot = rHR_steps_plots, "C:/Users/INGRAM_T/Dropbox/Auto_plots/fitbit_plot_two.tiff",
+  dpi = 300, base_width = 16, base_height = 12
+)
