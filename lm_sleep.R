@@ -47,6 +47,7 @@ hms_clean <- ready_data %>%
 hms_clean
 dev.off()
 ggpairs(hms_clean)
+<<<<<<< HEAD
 model <- lm(rHR ~ Steps, Sleep_hours, data = hms_clean)
 summary(model)
 library('ggplot2')
@@ -58,3 +59,5 @@ ggplot(data = model, aes(x = predLogPINCP, y = log10(PINCP))) +
               color = "blue", linetype = 2) +
     coord_cartesian(xlim = c(4, 5.25),
                     ylim = c(3.5, 5.5))
+=======
+>>>>>>> 89cee3ebe2f2a82f758858a068748bbd34699cc7

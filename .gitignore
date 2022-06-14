@@ -8,7 +8,6 @@ token_generation.log
 .token_generation.log
 *.log
 *.csv
-
 # JPEG
 *.jpg
 *.jpeg
@@ -16,7 +15,6 @@ token_generation.log
 *.jif
 *.jfif
 *.jfi
-
 # JPEG 2000
 *.jp2
 *.j2k
@@ -24,51 +22,38 @@ token_generation.log
 *.jpx
 *.jpm
 *.mj2
-
 # JPEG XR
 *.jxr
 *.hdp
 *.wdp
-
 # Graphics Interchange Format
 *.gif
-
 # RAW
 *.raw
-
 # Web P
 *.webp
-
 # Portable Network Graphics
 *.png
-
 # Animated Portable Network Graphics
 *.apng
-
 # Multiple-image Network Graphics
 *.mng
-
 # Tagged Image File Format
 *.tiff
 *.tif
-
 # Scalable Vector Graphics
 *.svg
 *.svgz
-
 # Portable Document Format
 *.pdf
-
 # X BitMap
 *.xbm
-
 # BMP
 *.bmp
 *.dib
-
 # ICO
 *.ico
-
 # 3D Images
 *.3dm
 *.max
+open_log.log
