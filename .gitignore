@@ -3,7 +3,10 @@
 .RData
 .Ruserdata
 .open_log
+open_log.log
+token_generation.log
 .token_generation.log
+*.log
 *.csv
 
 # JPEG
