@@ -17,8 +17,8 @@ suppressPackageStartupMessages({
   library(styler)
   library(hms)
 })
-lint("token_generation.R")
-style_file("token_generation.R")
+# lint("token_generation.R")
+# style_file("token_generation.R")
 
 
 # API load ---------------------------------------------------------------------
@@ -86,7 +86,7 @@ add_dates <- function(x) {
   )
 }
 # Function: 0 represents current day. Pull yesterday with -1 ---------------
-add_dates(-1)
+add_dates(-7)
 
 
 # Data processing: adjusting data type for "Date" variable ---------------------
