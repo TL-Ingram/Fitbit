@@ -7,4 +7,9 @@ open_log:
 token_generation
 - think about forecasting
 - more appropriate imputation method required for steps
+- monthly comparisons
+- eventual dashboard
+- rename from token_gen to more appropriate name
 
+lm:
+- create linear model
