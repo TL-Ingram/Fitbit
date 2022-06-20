@@ -29,8 +29,9 @@ token <- generate_token(client_id, client_secret)
 
 
 # API query for date "x" data ----------------------------------------------------
-add_dates <- function(x) {
-  date <- Sys.Date() + x
+y <- 1
+while (y < 6) {
+  date <- Sys.Date() - y
 
   # Fitbit tables queried
   summary <- activity_summary(date)
@@ -84,9 +85,10 @@ add_dates <- function(x) {
   ),
   row.names = FALSE
   )
+  print(y)
+  y <- y + 1
 }
-# Function: 0 represents current day. Pull yesterday with -1 ---------------
-add_dates(-7)
+# Function: 0 represents current day. Pull yesterday with -1 -------------------
 
 
 # Data processing: adjusting data type for "Date" variable ---------------------
