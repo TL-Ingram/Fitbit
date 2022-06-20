@@ -13,3 +13,7 @@ token_generation
 
 lm:
 - create linear model
+- lm model not great - fit better model
+- create 95% pred intervals
+- read into residuals vs leverage
+- create step/distance model - simple lm

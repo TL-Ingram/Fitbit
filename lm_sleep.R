@@ -8,8 +8,15 @@ hms_clean <- ready_data %>%
             sSleep = ymd_hms(paste(day, sSleep))) %>%
      mutate(sSleep = if_else(hour(sSleep) > 4, sSleep - days(1), sSleep)) %>%
      filter(!(Sleep_hours < 4)) %>%
-     select(1:6) #%>%
-     ggplot(aes(sSleep, Steps)) +
+     select(1:6) %>%
+    mutate(start_time = scale(as.numeric(sSleep)))
+
+
+
+?scale
+
+#%>%
+ggplot(aes(sSleep, Steps)) +
      geom_point(size = 4, alpha = 0.5, colour = "steelblue") +
      geom_line(stat = "smooth", size = 1.5, alpha = 0.7, colour = "black", se = FALSE, method = "loess") +
      theme_ipsum(
@@ -50,14 +57,15 @@ hms_clean
 dev.off()
 ggpairs(hms_clean)
 <<<<<<< HEAD
-model <- lm(Sleep_hours ~ Steps + Calories + Distance + rHR + sSleep, data = hms_clean)
+model <- lm(Sleep_hours ~ Steps + Calories + Distance + sSleep + rHR, data = hms_clean)
 summary(model)
 plot(model)
 hms_clean$pred <- predict(model, hms_clean)
-coefficients(model)
+options(scipen = 999)
+coeffs <- summary(model)$coefficients
 library('ggplot2')
 ggplot(data = hms_clean, aes(x = pred, y = pred - Sleep_hours)) +
-    geom_point(alpha = 0.4, color = "darkgray") +
+    geom_point(alpha = 1, color = "darkgray") +
     geom_smooth(color = "darkblue") +
     labs(
         x = "Predicted rHR",
@@ -65,3 +73,19 @@ ggplot(data = hms_clean, aes(x = pred, y = pred - Sleep_hours)) +
     )
     # coord_cartesian(xlim = c(4, 5.25),
     #                 ylim = c(3.5, 5.5))
+
+
+rsq <- function(y, f) { 1 - sum((y - f)^2)/sum((y - mean(y))^2) }
+
+rsq(hms_clean$Sleep_hours, hms_clean$pred)
+## [1] 0.2770201
+rmse <- function(y, f) { sqrt(mean( (y-f)^2 )) }
+rmse(hms_clean$Sleep_hours, hms_clean$pred)
+## [1] 0.8769692
+
+
+model_step_dist <- lm(Distance ~ Steps, data = hms_clean)
+summary(model_step_dist)
+plot(model_step_dist)
+
+
