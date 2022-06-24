@@ -56,10 +56,11 @@ ggplot(aes(sSleep, Steps)) +
 hms_clean
 dev.off()
 ggpairs(hms_clean)
-<<<<<<< HEAD
-model <- lm(Sleep_hours ~ Steps + Calories + Distance + sSleep + rHR, data = hms_clean)
+
+model <- lm(Sleep_hours ~ Steps + Calories + Distance + start_time + rHR, data = hms_clean)
 summary(model)
 plot(model)
+
 hms_clean$pred <- predict(model, hms_clean)
 options(scipen = 999)
 coeffs <- summary(model)$coefficients
@@ -89,3 +90,12 @@ summary(model_step_dist)
 plot(model_step_dist)
 
 
+sleep_hours_steps_test <- hms_clean %>%
+    mutate_at(c("Sleep_hours"), tibble::lst("new_Sleep_hours"=lead), n = 1) %>%
+    mutate_at(c("sSleep"), tibble::lst("new_Start_sleep"=lead), n = 1) %>%
+    select(2,3,9,10) %>%
+    slice(-(57))
+ggpairs(sleep_hours_steps_test)
+
+rHR_model <- lm(new_Sleep_hours ~ rHR + Steps + new_Start_sleep, data = sleep_hours_steps_test)          
+summary(rHR_model)
