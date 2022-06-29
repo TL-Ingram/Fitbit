@@ -346,3 +346,4 @@ save_plot(
   plot = rHR_steps_plots, "C:/Users/INGRAM_T/Dropbox/Auto_plots/fitbit_plot_two.tiff",
   dpi = 300, base_width = 16, base_height = 12
 )
+

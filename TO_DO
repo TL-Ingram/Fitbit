@@ -17,3 +17,12 @@ lm:
 - create 95% pred intervals
 - read into residuals vs leverage
 - create step/distance model - simple lm
+
+27JUNE2022:
+- add in manually data for two dates:
+	25JUNE = 8 hours sleep plus 13000 steps
+	26 JUNE = 7 hours sleep plus 8000 steps
+	
+29JUNE2022:
+- if rHR column does not exist in "x" then the script will not run.
+- need to add line that says, if exists then cool, else input row with imputed mean value
