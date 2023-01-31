@@ -1,21 +1,7 @@
-# Pkg load ---------------------------------------------------------------------
+# Packages load ---------------------------------------------------------------------
 suppressPackageStartupMessages({
-  library(fitbitr)
-  library(httpuv)
-  library(tidyverse)
-  library(lubridate)
-  library(viridis)
-  library(hrbrthemes)
-  library(ggrepel)
-  library(scales)
-  library(cowplot)
-  library(padr)
-  library(mlr)
-  library(zoo)
-  library(here)
-  library(lintr)
-  library(styler)
-  library(hms)
+  shelf(fitbitr, httpuv, tidyverse, lubridate, viridis, hrbrthemes, ggrepel,
+        cowplot, scales, padr, zoo, here, lintr, styler, hms, mlr3, glue)
 })
 # lint("token_generation.R")
 # style_file("token_generation.R")
@@ -30,13 +16,15 @@ token <- generate_token(client_id, client_secret)
 
 # API query for date "x" data ----------------------------------------------------
 y <- 1
-while (y < 6) {
+while (y < 14) {
   date <- Sys.Date() - y
 
   # Fitbit tables queried
+  try({
   summary <- activity_summary(date)
   sleep_summary <- sleep_summary(date)
   distance <- distance((date), (date - 1))
+  })
 
   scale <- function(x, na.rm = FALSE) {
     (x / 60)
@@ -46,15 +34,15 @@ while (y < 6) {
   x <- left_join(summary, sleep_summary, by = "date") %>%
     left_join(., distance, by = "date")
   x_clean <- x %>%
-    select(1, 5, 9, 11, 14, 19, 23) %>%
+    select(date, calories_out, resting_heart_rate, steps, start_time, minutes_asleep, distance) %>%
     mutate(Distance = distance / 1.609, distance = NULL) %>%
     rename(
-      Date = 1,
-      Calories = 2,
-      rHR = 3,
-      Steps = 4,
-      sSleep = 5,
-      "Sleep_hours" = 6
+      "Date" = date,
+      "Calories" = calories_out,
+      "rHR" = resting_heart_rate,
+      "Steps" = steps,
+      "sSleep" = start_time,
+      "Sleep_hours" = minutes_asleep
     ) %>%
     mutate_at("Sleep_hours", scale) %>%
     mutate(sSleep = ymd_hms(sSleep)) %>%
@@ -74,7 +62,7 @@ while (y < 6) {
   )
   files_update_daily <- do.call(
     rbind,
-    lapply(list.files(here("archive_daily_output"), full.names = TRUE),
+    lapply(list.files(here("archive_daily_output"), full.names = TRUE, pattern = "2023"),
       read.csv,
       header = TRUE, sep = ","
     )
@@ -91,124 +79,17 @@ while (y < 6) {
 # Function: 0 represents current day. Pull yesterday with -1 -------------------
 
 
-# Data processing: adjusting data type for "Date" variable ---------------------
-ready_data <- here("concatonated_data", "dates_concatonated.csv") %>%
-  read_csv() %>%
-  as_tibble() %>%
-  mutate(Date = ymd(Date))
+# Source: data processing and plotting scripts ----------------------------------
+source(here("scripts", "misc.R"))
+source(here("scripts", "plots.R"))
 
 # Plot: sleep duration and onset
-sleep_1 <- ready_data %>%
-  filter(!(h_o_s >= 6 & h_o_s <= 19)) %>%
-  filter(!(Sleep_hours < 4)) %>%
-  ggplot(aes(sSleep, Sleep_hours, label = sSleep, colour = h_o_s)) +
-  geom_point(size = 4, alpha = 0.5) +
-  geom_line(aes(sSleep, Sleep_hours), stat = "smooth", size = 1.5, alpha = 0.7, colour = "black", se = FALSE, method = "lm") +
-  scale_colour_manual(values = c("blue", "red")) +
-  expand_limits(y = 4:10) +
-  scale_y_continuous(breaks = seq(4, 10, 1)) +
-  scale_x_datetime(
-    breaks = date_breaks("7 days"),
-    labels = date_format("%b %d")
-  ) +
-  geom_hline(aes(yintercept = 7),
-    size = 1, linetype = "dashed", colour = "#482677FF"
-  ) +
-  theme_ipsum(
-    axis_title_just = "cc",
-    axis_title_face = "bold",
-    axis_text_size = 16,
-    axis_title_size = 18
-  ) +
-  theme(
-    panel.grid.minor = element_blank(),
-    panel.grid.major = element_blank(),
-    axis.line.x = element_line("grey50"),
-    axis.ticks = element_line(colour = "grey50", size = 0.2),
-    axis.ticks.x = element_line(colour = "grey50", size = 0.2),
-    axis.text.x = element_text(
-      angle = 25,
-      vjust = 1.0, hjust = 1.0
-    ),
-    plot.caption = element_text(
-      size = 14,
-      face = "italic", color = "black"
-    ),
-    legend.title = element_text(size = 16, face = "bold"),
-    legend.text = element_text(size = 16)
-  ) +
-  labs(
-    x = "Time of sleep onset",
-    y = "Sleep duration (hours)",
-    colour = "Sleep time",
-    title = "Sleep onset against sleep duration",
-    subtitle = "April 2022 : Present",
-    caption = "Horizontal dotted line represents subjectively appreciated \
-    `good` sleep time quantity. \
-    Early = before midnight; Late = after midnight \
-    Linear model represented by black line"
-  )
-
+sleep_ovd
 # Plot: sleep duration distribution
-sleep_2 <- ready_data %>%
-  filter(!(h_o_s >= 6 & h_o_s <= 19)) %>%
-  filter(!(Sleep_hours < 4)) %>%
-  ggplot(aes(Sleep_hours)) +
-  geom_density(fill = "blue", alpha = 0.1) +
-  geom_line(stat = "density", size = 1.5, colour = "blue", alpha = 0.2) +
-  geom_vline(aes(xintercept = median(Sleep_hours)), size = 1.5, alpha = 0.6) +
-  geom_vline(aes(xintercept = quantile(Sleep_hours, 0.25)),
-    linetype = "dashed", alpha = 0.6, size = 1.5
-  ) +
-  geom_vline(aes(xintercept = quantile(Sleep_hours, 0.75)),
-    linetype = "dashed", alpha = 0.6, size = 1.5
-  ) +
-  geom_text(aes(x = 8.5, label = paste("median = ", round(median(Sleep_hours), digits = 2)), y = 0.45),
-    colour = "black", angle = 0, size = 5.5
-  ) +
-  geom_text(aes(
-    x = 8.5, label = paste("n = ", length(Sleep_hours)),
-    y = 0.42
-  ), colour = "black", angle = 0, size = 5.5) +
-  theme_ipsum(
-    axis_title_just = "cc",
-    axis_title_face = "bold",
-    axis_text_size = 16,
-    axis_title_size = 18
-  ) +
-  theme(
-    panel.grid.minor = element_blank(),
-    panel.grid.major = element_blank(),
-    axis.line.x = element_line("grey50"),
-    axis.ticks = element_line(colour = "grey50", size = 0.2),
-    axis.ticks.x = element_line(colour = "grey50", size = 0.2),
-    plot.caption = element_text(
-      size = 14,
-      face = "italic", color = "black"
-    )
-  ) +
-  labs(
-    x = "Sleep duration (hours)",
-    y = "Density",
-    caption = "Lines depict median (solid), 1st and 3rd quartiles (dashed). \
-    Naps removed. n = number of days included in plot construction",
-    title = "Distribution of sleep duration",
-    subtitle = "April 2022 : Present"
-  )
+sleep_dist
 
-# Facet plot: bind sleep plots rowwise
-sleep_plots <- plot_grid(sleep_1, sleep_2, nrow = 2, labels = "") %>%
-  plot_grid()
-pdf_null_device()
-save_plot(
-  plot = sleep_plots, here("plots", "sleep_plots.tiff"),
-  dpi = 300, base_width = 16, base_height = 12
-)
-save_plot(
-  plot = sleep_plots, "C:/Users/INGRAM_T/Dropbox/Auto_plots/fitbit_plot_one.tiff",
-  dpi = 300, base_width = 16, base_height = 12
-)
 # Plot: resting heart rate
+rHR_change
 rHR_plot <- ready_data %>%
   distinct(Date, .keep_all = TRUE) %>%
   ggplot(aes(Date, rHR)) +
@@ -346,4 +227,5 @@ save_plot(
   plot = rHR_steps_plots, "C:/Users/INGRAM_T/Dropbox/Auto_plots/fitbit_plot_two.tiff",
   dpi = 300, base_width = 16, base_height = 12
 )
+dev.off()
 
