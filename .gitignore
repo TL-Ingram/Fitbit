@@ -57,3 +57,4 @@ token_generation.log
 *.3dm
 *.max
 open_log.log
+.httr-oauth

@@ -93,3 +93,5 @@ sleep_dist
 rHR_change
 # Daily step count time-series
 steps_plot
+
+test <- fitbitr::heart_rate_intraday(date)
