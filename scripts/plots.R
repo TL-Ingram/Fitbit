@@ -87,8 +87,43 @@ sleep_dist <- sleep_filter %>%
                            "; Q3 = ", q3_sleep,
                            ". Naps removed."),
           title = "Sleep duration distribution",
-          subtitle = paste0(first_date, ": Present")
+          subtitle = paste0(first_date_sleep, ": Present")
      )
+
+# Sleep stage by day of week
+s_stage <- stage_ready %>%
+    ggplot(aes(x = weekday, y = minutes/60, color = stage)) +
+    geom_ribbon(aes(ymin = benchmark_deep$low, ymax = benchmark_deep$high), fill = "#b7ded2", color = "#b7ded2", alpha = 0.1) +
+    geom_ribbon(aes(ymin = benchmark_light$low, ymax = benchmark_light$high), fill = "#f7c297", color = "#f7c297", alpha = 0.1) +
+    geom_ribbon(aes(ymin = benchmark_rem$low, ymax = benchmark_rem$high), fill = "#f6a6b2", color = "#f6a6b2", alpha = 0.1) +
+    geom_hline(color = "black", linetype = "dashed", size = 1, yintercept = 8) + 
+    geom_point() + 
+    geom_smooth(span = 0.5, se = FALSE) +
+    scale_x_continuous(breaks = stage_ready$weekday,
+                       labels = stage_ready$weekday_label) +
+    scale_y_continuous(breaks = c(0, 2, 4, 6, 8, 10)) +
+    scale_color_manual(name = "Sleep Stage",
+                       values = c("#b7ded2", "#f7c297", "#f6a6b2", "#064273"),
+                       labels = c("Deep", "Light", "REM", "Total")) +
+    theme_ipsum(
+        axis_title_just = "cc",
+        axis_title_face = "bold",
+        axis_text_size = 16,
+        axis_title_size = 18
+    ) +
+    theme(
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_blank(),
+        axis.line.x = element_line("grey50"),
+        axis.ticks = element_line(colour = "grey50", size = 0.2),
+        axis.ticks.x = element_line(colour = "grey50", size = 0.2),
+        plot.caption = element_text(
+            size = 14,
+            face = "italic", color = "black"
+        )
+    ) +
+    labs(x = "Day of Week",
+         y = "Hours")
 
 
 # Facet plot: bind sleep plots rowwise
