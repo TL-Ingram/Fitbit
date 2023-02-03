@@ -140,7 +140,7 @@ benchmark_hrv <- hrv_all %>%
   summarise(mean = mean(rmssd),
             SD = sd(rmssd))
 hrv_mean <- hrv_all %>%
-  group_by(Date) %>%
+  group_by(time) %>%
   summarise(mean = mean(rmssd))
   
 benchmark_test = data.frame(low = benchmark_hrv$mean - benchmark_hrv$SD,

@@ -52,16 +52,21 @@ for (i in date_range) {
 hrv_all %>%
      ggplot(aes(x = rmssd, y = heart_rate)) +
      geom_point() +
-     geom_smooth(method = lm, formula = y ~ splines::bs(x, 3), se = FALSE)
+     # geom_smooth(method = "lm", formula = y ~ poly(x, 3), data = hrv_all, se = F)
+     geom_smooth(method = "lm", formula = y ~ splines::bs(x, 3), se = FALSE)
+     geom_smooth(method = "lm", formula = y ~ x + I(y^3), data = hrv_all)
 
 lm <- lm(heart_rate ~ rmssd, data = hrv_all)
 summary(lm)
+l_2 <- lm(heart_rate ~ poly(rmssd, 2), data = hrv_all)
+summary(l_2)
 l_quad <- lm(heart_rate ~ rmssd + I(heart_rate^3), data=hrv_all)
-summary(quad)
+summary(l_quad)
+l_test <- lm(heart_rate ~ splines::bs(rmssd, 3), data = hrv_all)
+summary(l_test)
 
 
-
-
+# work more on understanding splines and polynom
 
 
 
