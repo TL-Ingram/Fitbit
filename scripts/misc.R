@@ -58,3 +58,7 @@ impute_steps <- ready_data %>%
      )) %>%
      mutate(threeday = rollmean(Steps, k = 3, fill = NA)) %>%
      mutate(Date = ymd(Date))
+
+
+
+date_range = as.character(seq(first_date_sleep, (Sys.Date() - 1), "days"))

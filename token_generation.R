@@ -16,7 +16,7 @@ token <- generate_token(client_id, client_secret)
 token <- load_cached_token()
 
 # fitbitViz specific token load ------------------------------------------------
-refresh_token = '17d54180e4a288659b25e02807e9d5b94a640d60739f6734ab36e47cf2f2d208'
+refresh_token = 'ac92b4d65c1fade3ab897d4d6b72f95ec2234f63d7e9ad41b6b5f13fc11c045d'
 new_token <- refresh_token_app(client_id = client_id,
                               client_secret = client_secret,
                               refresh_token = refresh_token)
@@ -105,7 +105,7 @@ rHR_change
 # Daily step count time-series
 steps_plot
 
-
+#####
 hrv_data <- heart_rate_intraday(date = first_date_sleep, minutes = TRUE)
 hrv_day <- hrv_data %>%
   mutate(minutes = (minute(time)),
