@@ -1,15 +1,3 @@
-#####
-hrv_data <- heart_rate_intraday(date = i, minutes = TRUE)
-test <- hrv_data %>%
-     group_by(mean = (row_number() -1) %/% 5) %>%
-     mutate(mean = mean(heart_rate),
-            time = ymd_hms(time)) %>%
-     ungroup(.) %>%
-     mutate(minutes = minute(time)) %>%
-     filter(minutes %% 5 == 0) %>%
-     select(-(minutes))
-
-
 # Loop through each day and pull-clean hrv and hr ------------------------------
 list_hrv <- list()
 for (i in date_range) {
@@ -46,69 +34,84 @@ for (i in date_range) {
      list_hrv[[glue("{i}_hrv")]] <- hr_hrv
      hrv_all <- bind_rows(list_hrv)
 }
+rm(hr_5min, hr_dt, hrv_5min, hrv_day, hrv_dt)
 
 
-# Linear regression
-hrv_all %>%
-     ggplot(aes(x = rmssd, y = heart_rate)) +
-     geom_point() +
-     # geom_smooth(method = "lm", formula = y ~ poly(x, 3), data = hrv_all, se = F)
-     geom_smooth(method = "lm", formula = y ~ splines::bs(x, 3), se = FALSE)
-     geom_smooth(method = "lm", formula = y ~ x + I(y^3), data = hrv_all)
+##### --------------------------------------------------------------------------
+# set.seed(10)
 
-lm <- lm(heart_rate ~ rmssd, data = hrv_all)
-summary(lm)
-l_2 <- lm(heart_rate ~ poly(rmssd, 2), data = hrv_all)
-summary(l_2)
-l_quad <- lm(heart_rate ~ rmssd + I(heart_rate^3), data=hrv_all)
-summary(l_quad)
-l_test <- lm(heart_rate ~ splines::bs(rmssd, 3), data = hrv_all)
-summary(l_test)
+# Filter to independent/predictor variables only. Remove outliers.
+lm_data <- hrv_all %>%
+        select(., c("rmssd", "heart_rate")) %>%
+        filter(., rmssd < 80)
+# lm_data <- as_tibble(scale.default(lm_data, center = T))
+
+# Separate training, validation, test sets
+spec = c(train = .8, test = .1, validate = .1)
+groups = sample(cut(
+        seq(nrow(lm_data)), 
+        nrow(hrv_all)*cumsum(c(0,spec)),
+        labels = names(spec)
+))
+groups_list = split(lm_data, groups)
+
+l_1 <- glm(rmssd ~ heart_rate, data = groups_list[["train"]])
+l_2 <- glm(rmssd ~ poly(heart_rate, 2), data = groups_list[["train"]])
+l_3 <- glm(rmssd ~ poly(heart_rate, 3), data = groups_list[["train"]])
+(cv.err.10 <- cv.glm(groups_list[["train"]], l_1, K = 10)$delta)
+(cv.err.10 <- cv.glm(groups_list[["train"]], l_2, K = 10)$delta)
+(cv.err.10 <- cv.glm(groups_list[["train"]], l_3, K = 10)$delta)
+summary(l_1)
+svr.model <- svm(rmssd ~ heart_rate , data = groups_list[["train"]], cross = 10)
+summary(svr.model)
+pred <- predict(svr.model, data = groups_list[["train"]])
+# working out own MSE (mean squared error)
+# y.lm.reg <- predict(l_1)
+# sum((y.lm.reg - groups_list[["train"]]$heart_rate)^2)
+# mean((y.lm.reg - groups_list[["train"]]$heart_rate)^2)
+# sqrt(mean((y.lm.reg - groups_list[["train"]]$heart_rate)^2))
+ggplot(data = groups_list[["train"]]) +
+        geom_point(aes(x = heart_rate, y = rmssd)) +
+        geom_line(aes(x = heart_rate, y = l_1$fitted.values),color = "red") +
+        geom_smooth(aes(x = heart_rate, y = l_2$fitted.values),color = "blue") +
+        geom_smooth(aes(x = heart_rate, y = l_3$fitted.values),color = "green") +
+        geom_smooth(aes(x = heart_rate, y = svr.model$fitted), color = "orange")
+     # geom_smooth(method = "lm", formula = y ~ poly(x, 2), data = hrv_all)
+
+# dist plot
+ggplot(data = groups_list[["train"]]) +
+        aes(x = heart_rate) +
+        geom_density()
 
 
-# work more on understanding splines and polynom
+fit.control <- trainControl(method = "repeatedcv", number = 10, repeats = 10)
+tuneGrid <- expand.grid(
+        C = c(0.25, .5, 1),
+        sigma = 0.1
+)
+set.seed(1)
+fit_lm <- train(rmssd ~ heart_rate, data = groups_list[["train"]], method = "lm", trControl = fit.control)
+fit_glm <- train(rmssd ~ heart_rate, data = groups_list[["train"]], method = "gam", trControl = fit.control)
+# fit_lasso <- train(rmssd ~ ., data = groups_list[["train"]], method = "glmnet", trControl = fit.control)
+fit_svm <- train(rmssd ~ heart_rate, data = groups_list[["train"]], method = "svmRadial", trControl = fit.control, preProcess = c("center", "scale"), tuneGrid = tuneGrid)
+resamps <- resamples(list(m1 = fit_lm,
+                          m2 = fit_glm,
+                          m3 = fit_svm))
+plot(fit_svm)
+summary(resamps)
+fit_svm
+xyplot(resamps, what = "BlandAltman", metric = "RMSE", models = c("m1", "m2"))
 
-
-
-
-
-f <- function(x){
-     return(0.0087606*x^2--0.0003897*x+27.9995968)
-}
-
+gam1 <- gam(rmssd ~ s(heart_rate), data = groups_list[["train"]])
+plot(gam1)
 #####
-hrv_all %>%
-     mutate(Date = as.factor(Date)) %>%
-     ggplot(aes(x = Date, y = rmssd)) +
-     geom_boxplot(outlier.alpha = 0.2)
-
-benchmark_hrv <- hrv_all %>%
-     summarise(mean = mean(rmssd),
-               SD = sd(rmssd))
 hrv_mean <- hrv_all %>%
-     group_by(Date) %>%
-     summarise(mean = mean(rmssd))
+        mutate(Date = date(time)) %>%
+        group_by(Date) %>%
+        summarise(rmssd = mean(rmssd))
 
-benchmark_test = data.frame(low = benchmark_hrv$mean - benchmark_hrv$SD,
-                            high = benchmark_hrv$mean + benchmark_hrv$SD,
-                            threshold = "thresholds")
-
-hrv_mean %>%
-     ggplot(aes(x = Date, y = mean)) +
-     geom_line() +
-     geom_ribbon(aes(ymin = benchmark_test$low, ymax = benchmark_test$high), 
-                 fill = "#b7ded2", color = "#b7ded2", alpha = 0.5) +
-     theme_minimal()
-
-full_data <- left_join(ready_data, hrv_mean, by = "Date")
-
-hrv_mean %>%
-     ggplot(aes(x = Date, y = mean)) +
-     geom_line() +
-     geom_line(data = full_data, aes(x = Date, y = rHR)) +
-     geom_ribbon(aes(ymin = benchmark_test$low, ymax = benchmark_test$high), 
-                 fill = "#b7ded2", color = "#b7ded2", alpha = 0.5) +
-     theme_minimal()
+full_data <- left_join(ready_data, hrv_mean, by = "Date") %>%
+        filter(Sleep_hours > 4)
 
 
 # want to take day minutes in one col and match with hrv in another col

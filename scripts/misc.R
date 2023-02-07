@@ -46,6 +46,7 @@ stage_ready <- sleep_stage %>%
         mutate(weekday = wday(date),
                weekday_label = wday(date, label = TRUE))
 
+rm(mean_all_minutes)
 
 # Imputation and labelling of missing step data --------------------------------
 impute_steps <- ready_data %>%
@@ -61,4 +62,4 @@ impute_steps <- ready_data %>%
 
 
 
-date_range = as.character(seq(first_date_sleep, (Sys.Date() - 1), "days"))
+date_range = as.character(seq(first_date_sleep, (Sys.Date()), "days"))

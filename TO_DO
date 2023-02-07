@@ -1,28 +1,8 @@
-scheduler:
-- Complete
+In steps 1 and 2, we do not want to evaluate the candidate models once. Instead, we prefer to evaluate each model multiple times with different dataset and take the average score for our decision at step 3. If we have the luxury of vast amounts of data, this could be done easily. Otherwise, we can use the trick of k-fold to resample the same dataset multiple times and pretend they are different. As we are evaluating the model, or hyperparameter, the model has to be trained from scratch, each time, without reusing the training result from previous attempts. We call this process cross validation.
 
-open_log:
-- Complete
+From the result of cross validation, we can conclude whether one model is better than another. Since the cross validation is done on a smaller dataset, we may want to retrain the model again, once we have a decision on the model. The reason is the same as that for why we need to use k-fold in cross-validation; we do not have a lot of data, and the smaller dataset we used previously, had a part of it held out for validation. We believe combining the training and validation dataset can produce a better model. This is what would occur in step 4.
 
-token_generation
-- think about forecasting
-- more appropriate imputation method required for steps
-- monthly comparisons
-- eventual dashboard
-- rename from token_gen to more appropriate name
 
-lm:
-- create linear model
-- lm model not great - fit better model
-- create 95% pred intervals
-- read into residuals vs leverage
-- create step/distance model - simple lm
-
-27JUNE2022:
-- add in manually data for two dates:
-	25JUNE = 8 hours sleep plus 13000 steps
-	26 JUNE = 7 hours sleep plus 8000 steps
-	
-29JUNE2022:
-- if rHR column does not exist in "x" then the script will not run.
-- need to add line that says, if exists then cool, else input row with imputed mean value
+07/02/23
+Now focus on data collection - then rerun regression models with increased predictors for my rmssd.
+In the meantime, read more about linear regression, svm, etc.

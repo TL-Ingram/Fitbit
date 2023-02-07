@@ -217,7 +217,7 @@ steps_plot <- impute_steps %>%
      )
 
 # Facet plot: bind rHR and step plots rowwise
-rHR_steps_plots <- plot_grid(rHR_plot, steps_plot, nrow = 2, labels = "") %>%
+rHR_steps_plots <- plot_grid(rHR_change, steps_plot, nrow = 2, labels = "") %>%
      plot_grid()
 save_plot(
      plot = rHR_steps_plots, here("plots", "rHR_steps_plots.tiff"),

@@ -2,7 +2,7 @@
 suppressPackageStartupMessages({
   shelf(fitbitr, httpuv, tidyverse, lubridate, viridis, hrbrthemes, ggrepel,
         cowplot, scales, padr, zoo, here, lintr, styler, hms, glue, 
-        janitor, fitbitViz)
+        janitor, fitbitViz, caret, boot, e1071, glmnet, mgcv)
 })
 # lint("token_generation.R")
 # style_file("token_generation.R")
@@ -11,17 +11,14 @@ suppressPackageStartupMessages({
 # API load ---------------------------------------------------------------------
 client_id <- "238GCK"
 client_secret <- "f719c27b39cfdb748ec01b2597c1d899"
-callback <- "http://localhost:1410/"
-token <- generate_token(client_id, client_secret)
-token <- load_cached_token()
-
-# fitbitViz specific token load ------------------------------------------------
-refresh_token = 'ac92b4d65c1fade3ab897d4d6b72f95ec2234f63d7e9ad41b6b5f13fc11c045d'
+refresh_token = '0aaf03a055c37de15dc9c4d5fc5f42100e87b5da404e6066e30a1548b87db46f'
 new_token <- refresh_token_app(client_id = client_id,
                               client_secret = client_secret,
                               refresh_token = refresh_token)
 new_token <- new_token$access_token
-
+callback <- "http://localhost:1410/"
+token <- generate_token(client_id, client_secret)
+token <- load_cached_token()
 
 # API query for date "x" data --------------------------------------------------
 # Function: 0 represents current day. Pull yesterday with -1 -------------------
@@ -106,60 +103,61 @@ rHR_change
 steps_plot
 
 #####
-hrv_data <- heart_rate_intraday(date = first_date_sleep, minutes = TRUE)
-hrv_day <- hrv_data %>%
-  mutate(minutes = (minute(time)),
-         five_min_index = 1:nrow(hrv_data) %/% 5) %>%
-  group_by(five_min_index) %>%
-  summarise(mean = mean(heart_rate),
-            SD = sd(heart_rate))
-
-
-date_range = as.character(seq(first_date_sleep, (Sys.Date() - 1), "days"))
-
-list_hrv <- list()
-for (i in date_range) {
-    hrv_day <- fitbitViz::fitbit_data_type_by_date(user_id = "7B7QC2",
-                                    token = new_token,
-                                    date = i,
-                                    type = "hrv")
-    hrv_dt <- hrv_day %>%
-      mutate(Date = date(minute)) %>%
-      select(-(minute))
-    
-    list_hrv[[glue("{i}_hrv")]] <- hrv_dt
-    hrv_all <- bind_rows(list_hrv)
-}
-
-hrv_all %>%
-  mutate(Date = as.factor(Date)) %>%
-  ggplot(aes(x = Date, y = rmssd)) +
-  geom_boxplot(outlier.alpha = 0.2)
-
-benchmark_hrv <- hrv_all %>%
-  summarise(mean = mean(rmssd),
-            SD = sd(rmssd))
-hrv_mean <- hrv_all %>%
-  group_by(time) %>%
-  summarise(mean = mean(rmssd))
-  
-benchmark_test = data.frame(low = benchmark_hrv$mean - benchmark_hrv$SD,
-                            high = benchmark_hrv$mean + benchmark_hrv$SD,
-                            threshold = "thresholds")
-
-hrv_mean %>%
-  ggplot(aes(x = Date, y = mean)) +
-  geom_line() +
-  geom_ribbon(aes(ymin = benchmark_test$low, ymax = benchmark_test$high), 
-              fill = "#b7ded2", color = "#b7ded2", alpha = 0.5) +
-  theme_minimal()
-
-full_data <- left_join(ready_data, hrv_mean, by = "Date")
-
-hrv_mean %>%
-  ggplot(aes(x = Date, y = mean)) +
-  geom_line() +
-  geom_line(data = full_data, aes(x = Date, y = rHR)) +
-  geom_ribbon(aes(ymin = benchmark_test$low, ymax = benchmark_test$high), 
-              fill = "#b7ded2", color = "#b7ded2", alpha = 0.5) +
-  theme_minimal()
+# hrv_data <- heart_rate_intraday(date = first_date_sleep, minutes = TRUE)
+# hrv_day <- hrv_data %>%
+#   mutate(minutes = (minute(time)),
+#          five_min_index = 1:nrow(hrv_data) %/% 5) %>%
+#   group_by(five_min_index) %>%
+#   summarise(mean = mean(heart_rate),
+#             SD = sd(heart_rate))
+# 
+# 
+# date_range = as.character(seq(first_date_sleep, (Sys.Date() - 1), "days"))
+# 
+# list_hrv <- list()
+# for (i in date_range) {
+#     hrv_day <- fitbitViz::fitbit_data_type_by_date(user_id = "7B7QC2",
+#                                     token = new_token,
+#                                     date = i,
+#                                     type = "hrv")
+#     hrv_dt <- hrv_day %>%
+#       mutate(Date = date(minute)) %>%
+#       select(-(minute))
+#     
+#     list_hrv[[glue("{i}_hrv")]] <- hrv_dt
+#     hrv_all <- bind_rows(list_hrv)
+# }
+# 
+# hrv_all %>%
+#   mutate(Date = date(time)) %>%
+#   mutate(Date = as.factor(Date)) %>%
+#   ggplot(aes(x = Date, y = rmssd)) +
+#   geom_boxplot(outlier.alpha = 0.2)
+# 
+# benchmark_hrv <- hrv_all %>%
+#   summarise(mean = mean(rmssd),
+#             SD = sd(rmssd))
+# hrv_mean <- hrv_all %>%
+#   group_by(time) %>%
+#   summarise(mean = mean(rmssd))
+#   
+# benchmark_test = data.frame(low = benchmark_hrv$mean - benchmark_hrv$SD,
+#                             high = benchmark_hrv$mean + benchmark_hrv$SD,
+#                             threshold = "thresholds")
+# 
+# hrv_mean %>%
+#   ggplot(aes(x = Date, y = mean)) +
+#   geom_line() +
+#   geom_ribbon(aes(ymin = benchmark_test$low, ymax = benchmark_test$high), 
+#               fill = "#b7ded2", color = "#b7ded2", alpha = 0.5) +
+#   theme_minimal()
+# 
+# full_data <- left_join(ready_data, hrv_mean, by = "Date")
+# 
+# hrv_mean %>%
+#   ggplot(aes(x = Date, y = mean)) +
+#   geom_line() +
+#   geom_line(data = full_data, aes(x = Date, y = rHR)) +
+#   geom_ribbon(aes(ymin = benchmark_test$low, ymax = benchmark_test$high), 
+#               fill = "#b7ded2", color = "#b7ded2", alpha = 0.5) +
+#   theme_minimal()
