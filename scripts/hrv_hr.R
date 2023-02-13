@@ -84,12 +84,13 @@ ggplot(data = groups_list[["train"]]) +
         geom_density()
 
 
-fit.control <- trainControl(method = "repeatedcv", number = 10, repeats = 10)
+fit.control <- trainControl(method = "repeatedcv", number = 4, repeats = 10)
 tuneGrid <- expand.grid(
         C = c(0.25, .5, 1),
         sigma = 0.1
 )
 set.seed(1)
+fit_mlm <- train(rmssd ~ rHR + Steps + Sleep_hours, data = full_data, method = "glm", trControl = fit.control)
 fit_lm <- train(rmssd ~ heart_rate, data = groups_list[["train"]], method = "lm", trControl = fit.control)
 fit_glm <- train(rmssd ~ heart_rate, data = groups_list[["train"]], method = "gam", trControl = fit.control)
 # fit_lasso <- train(rmssd ~ ., data = groups_list[["train"]], method = "glmnet", trControl = fit.control)
@@ -97,6 +98,7 @@ fit_svm <- train(rmssd ~ heart_rate, data = groups_list[["train"]], method = "sv
 resamps <- resamples(list(m1 = fit_lm,
                           m2 = fit_glm,
                           m3 = fit_svm))
+fit_mlm
 plot(fit_svm)
 summary(resamps)
 fit_svm
