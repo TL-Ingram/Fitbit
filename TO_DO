@@ -6,3 +6,14 @@ From the result of cross validation, we can conclude whether one model is better
 07/02/23
 Now focus on data collection - then rerun regression models with increased predictors for my rmssd.
 In the meantime, read more about linear regression, svm, etc.
+
+
+04/03/23
+full_data: 
+DONE - check for non-unique dates. When found add together sleep hours then remove the second row.
+- join excel file to this
+- clean it up
+- predict stuff?
+
+Nice to do: add time in each sleep stage?
+- Any association between sleep timing, length, and sleep stage durations?

@@ -1,11 +1,13 @@
 # Loop through each day and pull-clean hrv and hr ------------------------------
 list_hrv <- list()
+i = "2023-02-13"
 for (i in date_range) {
      # Pull full day heart rate variability
      hrv_day <- fitbitViz::fitbit_data_type_by_date(user_id = "7B7QC2",
                                                     token = new_token,
                                                     date = i,
                                                     type = "hrv")
+     print(head(hrv_day$minute, n = 1))
      
      # Clean time var and create two dfs: daily mean and 5 min hrv
      hrv_dt <- hrv_day %>%
@@ -72,10 +74,10 @@ pred <- predict(svr.model, data = groups_list[["train"]])
 # sqrt(mean((y.lm.reg - groups_list[["train"]]$heart_rate)^2))
 ggplot(data = groups_list[["train"]]) +
         geom_point(aes(x = heart_rate, y = rmssd)) +
-        geom_line(aes(x = heart_rate, y = l_1$fitted.values),color = "red") +
-        geom_smooth(aes(x = heart_rate, y = l_2$fitted.values),color = "blue") +
-        geom_smooth(aes(x = heart_rate, y = l_3$fitted.values),color = "green") +
-        geom_smooth(aes(x = heart_rate, y = svr.model$fitted), color = "orange")
+        geom_line(aes(x = heart_rate, y = l_1$fitted.values), colour = "red") +
+        geom_smooth(aes(x = heart_rate, y = l_2$fitted.values), colour = "blue") +
+        geom_smooth(aes(x = heart_rate, y = l_3$fitted.values), colour = "green") +
+        geom_smooth(aes(x = heart_rate, y = svr.model$fitted), colour = "orange") 
      # geom_smooth(method = "lm", formula = y ~ poly(x, 2), data = hrv_all)
 
 # dist plot
@@ -112,8 +114,12 @@ hrv_mean <- hrv_all %>%
         group_by(Date) %>%
         summarise(rmssd = mean(rmssd))
 
-full_data <- left_join(ready_data, hrv_mean, by = "Date") %>%
-        filter(Sleep_hours > 4)
+full_data <- full_join(ready_data, hrv_mean, by = "Date") %>%
+        filter(Date > "2023-01-23")
 
+dup_dates <- full_data %>%
+        group_by(Date) %>%
+        mutate(sSleep = ymd_hms(sSleep)) %>%
+        filter(sSleep == min(sSleep))
 
 # want to take day minutes in one col and match with hrv in another col

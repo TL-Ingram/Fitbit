@@ -63,3 +63,4 @@ impute_steps <- ready_data %>%
 
 
 date_range = as.character(seq(first_date_sleep, (Sys.Date()), "days"))
+date_range

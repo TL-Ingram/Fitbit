@@ -22,8 +22,8 @@ token <- load_cached_token()
 
 # API query for date "x" data --------------------------------------------------
 # Function: 0 represents current day. Pull yesterday with -1 -------------------
-y <- 1
-while (y < 14) {
+y <- 14
+while (y < 35) {
   date <- Sys.Date() - y
 
   # Fitbit tables queried
