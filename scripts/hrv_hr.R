@@ -121,5 +121,4 @@ dup_dates <- full_data %>%
         group_by(Date) %>%
         mutate(sSleep = ymd_hms(sSleep)) %>%
         filter(sSleep == min(sSleep))
-
-# want to take day minutes in one col and match with hrv in another col
+write_csv(dup_dates, "fitbit_data.csv")
